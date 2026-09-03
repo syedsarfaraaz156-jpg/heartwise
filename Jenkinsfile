@@ -25,14 +25,16 @@ pipeline {
 
         stage('Test Container') {
             steps {
-                bat '''
-                    docker rm -f heartwise-test 2>NUL || exit /B 0
-                    docker run -d --name heartwise-test -p 5001:5000 heartwise:latest
-                    powershell -Command "Start-Sleep -Seconds 5"
-                    docker ps -a
-                    docker logs heartwise-test
-                    curl http://localhost:5001
-                '''
+                withCredentials([string(credentialsId: 'openrouter-api-key', variable: 'OPENROUTER_API_KEY')]) {
+                    bat '''
+                        docker rm -f heartwise-test 2>NUL || exit /B 0
+                        docker run -d --name heartwise-test -p 5001:5000 -e OPENROUTER_API_KEY="%OPENROUTER_API_KEY%" heartwise:latest
+                        powershell -Command "Start-Sleep -Seconds 5"
+                        docker ps -a
+                        docker logs heartwise-test
+                        curl http://localhost:5001
+                    '''
+                }
             }
         }
 
